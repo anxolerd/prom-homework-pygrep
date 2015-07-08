@@ -2,7 +2,7 @@
 
 import fnmatch
 import os
-from os.path import abspath, basename, join, normpath
+from os.path import abspath, join
 import sys
 
 
@@ -19,20 +19,24 @@ def get_lines(filename):
             yield nu, line
 
 
+def grep(pattern, query):
+    for file_path in search_files(pattern):
+        try:
+            for nu, line in get_lines(file_path):
+                if query in line:
+                    print('{}:{} {}'.format(file_path, nu,
+                                            line.rstrip()))
+        except UnicodeDecodeError:
+            pass
+
+
 if __name__ == "__main__":
     if len(sys.argv) != 3:
         print("Syntax: pygrep.py PATTERN QUERY")
         exit(1)
     try:
-        for file_path in search_files(sys.argv[1]):
-            try:
-                for nu, line in get_lines(file_path):
-                    if sys.argv[2] in line:
-                        file_name = basename(normpath(file_path))
-                        print('{}:{} {}'.format(file_name, nu,
-                                                line.rstrip()))
-            except UnicodeDecodeError:
-                print("Cannot decode file: {}".format(abspath(file_path)))
+        _, pattern, query = sys.argv
+        grep(pattern, query)
     except KeyboardInterrupt:
         print("Interrupted by user")
         exit(0)
